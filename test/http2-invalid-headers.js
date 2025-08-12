@@ -10,25 +10,25 @@ const { Client } = require('..')
 
 test('should handle invalid HTTP/2 headers gracefully', async (t) => {
   const { ok } = tspl(t, { plan: 2 })
-  
+
   const server = createSecureServer(pem, { allowHTTP1: false })
   server.on('stream', (stream) => {
     // Send an invalid HTTP/2 header
     stream.respond({
       ':status': 200,
-      'connection': 'keep-alive' // Invalid in HTTP/2
+      connection: 'keep-alive' // Invalid in HTTP/2
     })
     stream.end()
   })
 
   server.listen()
   await once(server, 'listening')
-  
+
   const client = new Client(`https://localhost:${server.address().port}`, {
     connect: { rejectUnauthorized: false },
     allowH2: true
   })
-  
+
   try {
     await client.request({ path: '/', method: 'GET' })
     ok(false, 'Expected request to fail')
